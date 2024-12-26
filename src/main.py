@@ -6,6 +6,8 @@ import sys
 from typing import Any
 from html import unescape
 import re
+import gpxpy
+import gpxpy.gpx
 
 
 def make_http_request(url: str) -> str:
@@ -53,18 +55,53 @@ def extract_json_from_html(html: str) -> dict[str, Any]:
         raise e
     return result
 
+def json_to_gpx(json_data: dict[str, Any]) -> gpxpy.gpx.GPX:
+    """
+    Convert JSON data to GPX format.
+    """
+    # TODO: Check gpx if coordinates are empty or invalid.
+    gpx = gpxpy.gpx.GPX()
+
+    gpx.name = json_data["page"]["_embedded"]["tour"]["name"]
+
+    # Create first track in our GPX:
+    gpx_track = gpxpy.gpx.GPXTrack()
+    gpx.tracks.append(gpx_track)
+
+    # Create first segment in our GPX track:
+    gpx_segment = gpxpy.gpx.GPXTrackSegment()
+    gpx_track.segments.append(gpx_segment)
+
+    # Create points:
+    for item in json_data["page"]["_embedded"]["tour"]["_embedded"]["coordinates"]["items"]:
+        lat = item["lat"]
+        lng = item["lng"]
+        alt = item["alt"]
+        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=lng, elevation=alt))
+
+    return gpx
+
+def write_gpx(gpx: gpxpy.gpx.GPX, filename: str) -> None:
+    """
+    Write GPX data to a file.
+    """
+    with open(filename, "w") as f:
+        f.write(gpx.to_xml())
+
+
+
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Convert Komoot tour URL to GPX")
     parser.add_argument("url", help="The Komoot URL to make a GPX for")
-    # parser.add_argument("-o", "--output", required=True, help="The GPX file to create")
+    parser.add_argument("-o", "--output", required=True, help="The GPX file to create")
     args = parser.parse_args()
 
     try:
         html = make_http_request(args.url)
         extracted_data = extract_json_from_html(html)
-        # Process the extracted data as needed
-        print("Successfully extracted JSON data.")
+        gpx = json_to_gpx(extracted_data)
+        write_gpx(gpx, args.output)
     except requests.RequestException as e:
         print(f"HTTP request error: {e}")
         traceback.print_exc()  # Log full traceback for debugging
