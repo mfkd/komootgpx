@@ -53,7 +53,6 @@ def extract_json_from_html(html: str) -> dict[str, Any]:
         raise e
     return result
 
-
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Convert Komoot tour URL to GPX")
