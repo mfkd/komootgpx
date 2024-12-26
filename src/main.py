@@ -14,7 +14,7 @@ def make_http_request(url: str) -> str:
     Make an HTTP GET request and return the response content as a string.
     """
     headers = {"User-Agent": "komootgpx"}
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
     return response.text
 
