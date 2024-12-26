@@ -55,6 +55,7 @@ def extract_json_from_html(html: str) -> dict[str, Any]:
         raise e
     return result
 
+
 def json_to_gpx(json_data: dict[str, Any]) -> gpxpy.gpx.GPX:
     """
     Convert JSON data to GPX format.
@@ -73,13 +74,18 @@ def json_to_gpx(json_data: dict[str, Any]) -> gpxpy.gpx.GPX:
     gpx_track.segments.append(gpx_segment)
 
     # Create points:
-    for item in json_data["page"]["_embedded"]["tour"]["_embedded"]["coordinates"]["items"]:
+    for item in json_data["page"]["_embedded"]["tour"]["_embedded"]["coordinates"][
+        "items"
+    ]:
         lat = item["lat"]
         lng = item["lng"]
         alt = item["alt"]
-        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=lng, elevation=alt))
+        gpx_segment.points.append(
+            gpxpy.gpx.GPXTrackPoint(latitude=lat, longitude=lng, elevation=alt)
+        )
 
     return gpx
+
 
 def write_gpx(gpx: gpxpy.gpx.GPX, filename: str) -> None:
     """
@@ -87,7 +93,6 @@ def write_gpx(gpx: gpxpy.gpx.GPX, filename: str) -> None:
     """
     with open(filename, "w") as f:
         f.write(gpx.to_xml())
-
 
 
 def main():
