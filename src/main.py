@@ -1,8 +1,11 @@
 import requests
 import argparse
 import json
+import traceback
+import sys
 from typing import Any
 from html import unescape
+import re
 
 
 def make_http_request(url: str) -> str:
@@ -14,12 +17,20 @@ def make_http_request(url: str) -> str:
     response.raise_for_status()
     return response.text
 
+
+def sanitize_json_string(json_string: str) -> str:
+    json_string = unescape(json_string)
+    json_string = json_string.replace("\\\\", "\\")
+    json_string = json_string.replace('\\"', '"')
+    return json_string
+
+
 def extract_json_from_html(html: str) -> dict[str, Any]:
     """
     Extract JSON data embedded in the HTML content.
     """
-    start_marker = "kmtBoot.setProps(\""
-    end_marker = "\");"
+    start_marker = 'kmtBoot.setProps("'
+    end_marker = '");'
 
     start = html.find(start_marker)
     if start == -1:
@@ -31,15 +42,19 @@ def extract_json_from_html(html: str) -> dict[str, Any]:
         raise ValueError("End marker not found")
 
     htmljson = html[start:end]
-    unescaped = unescape(htmljson)
-    result = json.loads(unescaped)
+    sanitized = sanitize_json_string(unescape(htmljson))
+
+    try:
+        result = json.loads(sanitized)
+    except json.JSONDecodeError as e:
+        # Provide detailed debugging information on failure
+        print("Failed to decode JSON. Problematic string:")
+        print(sanitized)
+        raise e
     return result
 
 
 def main():
-    pass
-
-if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Convert Komoot tour URL to GPX")
     parser.add_argument("url", help="The Komoot URL to make a GPX for")
@@ -48,9 +63,26 @@ if __name__ == "__main__":
 
     try:
         html = make_http_request(args.url)
-        d = extract_json_from_html(html)
-        print(d)
+        extracted_data = extract_json_from_html(html)
+        # Process the extracted data as needed
+        print("Successfully extracted JSON data.")
+    except requests.RequestException as e:
+        print(f"HTTP request error: {e}")
+        traceback.print_exc()  # Log full traceback for debugging
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Value error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"JSON decoding error: {e}")
+        traceback.print_exc()
+        sys.exit(1)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"An unexpected error occurred: {e}")
+        traceback.print_exc()
+        sys.exit(1)
 
+
+if __name__ == "__main__":
     main()
