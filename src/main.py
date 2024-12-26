@@ -5,7 +5,6 @@ import traceback
 import sys
 from typing import Any
 from html import unescape
-import re
 import gpxpy
 import gpxpy.gpx
 
