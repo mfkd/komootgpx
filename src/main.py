@@ -20,6 +20,9 @@ def make_http_request(url: str) -> str:
 
 
 def sanitize_json_string(json_string: str) -> str:
+    """
+    Sanitize JSON string by removing unnecessary escape characters.
+    """
     json_string = unescape(json_string)
     json_string = json_string.replace("\\\\", "\\")
     json_string = json_string.replace('\\"', '"')
