@@ -1,2 +1,4 @@
+# Kept for compatibility with pip install -r requirements.txt.
+# Project packaging and the console script are defined in pyproject.toml.
 gpxpy==1.6.2
-Requests==2.33.1
+requests==2.33.1
