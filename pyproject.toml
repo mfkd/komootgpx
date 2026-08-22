@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "gpxpy==1.6.2",
-    "requests==2.33.1",
+    "requests==2.34.2",
 ]
 
 [project.scripts]
